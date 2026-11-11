@@ -1,13 +1,20 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import health
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.errors import AppError
 from app.core.logging import configure_logging
 from app.db.session import engine
+
+
+async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
+    headers = {"WWW-Authenticate": "Bearer"} if exc.status_code == 401 else None
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message, "code": exc.code}, headers=headers)
 
 
 @asynccontextmanager
@@ -27,6 +34,7 @@ def create_app() -> FastAPI:
         redoc_url=None,
         openapi_url=None if settings.is_production else "/openapi.json",
     )
+    app.add_exception_handler(AppError, app_error_handler)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,

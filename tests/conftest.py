@@ -1,5 +1,9 @@
 import asyncio
+import os
 import re
+
+# Tests need a signing secret before the app settings are first read.
+os.environ.setdefault("JWT_SECRET", "test-only-secret-" + "x" * 32)
 
 import asyncpg
 import pytest
@@ -49,7 +53,9 @@ def test_db_url() -> str:
     except Exception as exc:  # pragma: no cover - environment problem
         pytest.exit(f"Cannot create {parsed.database!r} ({exc}). Create it manually: "
                     f"createdb {parsed.database}", returncode=2)
-    command.upgrade(alembic_config(test_url), "head")
+    cfg = alembic_config(test_url)
+    command.downgrade(cfg, "base")  # start every run from an empty schema
+    command.upgrade(cfg, "head")
     return test_url
 
 

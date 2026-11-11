@@ -4,9 +4,6 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Literal
-
-from pydantic import BaseModel
 
 
 from app.core.config import get_settings
@@ -35,12 +32,3 @@ async def ready(session: AsyncSession = Depends(get_session)):
     return ReadyOut(status="ready", database="ok")
 
 
-class HealthOut(BaseModel):
-    status: Literal["ok"]
-    service: str
-    environment: str
-
-
-class ReadyOut(BaseModel):
-    status: Literal["ready", "unavailable"]
-    database: Literal["ok", "error"]

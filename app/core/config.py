@@ -54,6 +54,23 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 10
 
+    # Authentication
+    jwt_secret: str
+    jwt_algorithm: str = "HS256"
+    access_token_minutes: int = 15
+    refresh_token_days: int = 14
+    invitation_days: int = 7
+    max_failed_logins: int = 5
+    lockout_minutes: int = 15
+    allow_registration: bool = True
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def _secret_strength(cls, v: str) -> str:
+        if len(v) < 32:
+            raise ValueError("JWT_SECRET must be at least 32 characters")
+        return v
+
     @field_validator("database_url", "test_database_url")
     @classmethod
     def _normalize_url(cls, v: str | None) -> str | None:

@@ -31,6 +31,7 @@ async def test_mixins_and_constraint_names_in_postgres(engine):
             assert isinstance(item.id, uuid.UUID)
             assert isinstance(item.created_at, datetime) and item.created_at.tzinfo is not None
         names = {r[0] for r in await conn.execute(text(
-            "SELECT conname FROM pg_constraint WHERE conrelid = 'tmp_item'::regclass"))}
+    "SELECT conname FROM pg_constraint "
+    "WHERE conrelid = 'tmp_item'::regclass AND contype IN ('p', 'c')"))}
         assert names == {"pk_tmp_item", "ck_tmp_item_name_nonempty"}
         await trans.rollback()
